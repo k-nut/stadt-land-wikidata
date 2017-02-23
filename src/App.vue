@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <h1 class="ui header">Stadt, Land, Wikidata</h1>
+    <h1 class="ui header">Stadt, Land, Wikidata!</h1>
     <router-view></router-view>
   </div>
 </template>
