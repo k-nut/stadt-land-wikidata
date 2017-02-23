@@ -75,7 +75,12 @@
         </form>
 
       </div>
+
+      <div class="ui active inverted dimmer" v-if="loading">
+        <div class="ui loader"></div>
+      </div>
     </div>
+
   </div>
 </template>
 
@@ -102,7 +107,7 @@ export default {
       },
       currentLetter,
       pattern: `^${currentLetter}.*`,
-
+      loading: false,
     };
   },
   computed: {
@@ -115,11 +120,12 @@ export default {
       function selectNextLetter() {
         self.currentLetter = _.sample("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
         self.pattern = `^[${self.currentLetter}].*`;
-        this.newEntry = {
+        self.newEntry = {
           city: "",
           country: "",
           river: "",
         };
+        self.loading = false;
       }
 
       function successHandler(responses) {
@@ -145,6 +151,8 @@ export default {
         this.$http.get(`https://stadt-land-wikidata.herokuapp.com/river?name=${this.newEntry.river}`),
       ];
 
+
+      this.loading = true;
       Promise.all(promises).then(successHandler);
     },
   },
