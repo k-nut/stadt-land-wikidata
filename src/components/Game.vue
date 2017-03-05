@@ -91,7 +91,7 @@ export default {
           city: { name: "Berlin", correct: true, link: "https://www.wikidata.org/wiki/Q64" },
           country: { name: "Belgien", correct: true, link: "https://www.wikidata.org/wiki/Q31" },
           river: { name: "Bröl", correct: true, link: "https://www.wikidata.org/wiki/Q153109" },
-          points: 50,
+          points: 30,
         },
       ],
       newEntry: {
