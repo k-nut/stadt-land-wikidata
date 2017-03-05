@@ -125,41 +125,23 @@ export default {
       }
 
       function successHandler(responses) {
-        const cityResponse = responses[0].body.data;
-        const countryResponse = responses[1].body.data;
-        const riverResponse = responses[2].body.data;
-
+        const responsesByEntity = _.chain(responses).map("body.data").keyBy("entity").value();
 
         function pushResults() {
           self.entries.push({
-            city: cityResponse,
-            country: countryResponse,
-            river: riverResponse,
+            city: responsesByEntity.city,
+            country: responsesByEntity.country,
+            river: responsesByEntity.river,
             points: _.sumBy(responses, response => (response.body.data.correct ? 1 : 0)) * 10,
           });
           selectNextLetter();
         }
 
         function add(response) {
-          console.log("response", response);
-          switch (response.body.data.entity) {
-            case ("city"):
-              cityResponse.examples = response.body.data.examples;
-              break;
-            case ("river"):
-              riverResponse.examples = response.body.data.examples;
-              break;
-            case ("country"):
-              countryResponse.examples = response.body.data.examples;
-              break;
-            default:
-              // we should never get here
-              break;
-          }
+          responsesByEntity[response.body.data.entity].examples = response.body.data.examples;
         }
 
         function pushit(exampleResponses) {
-          console.log(exampleResponses);
           _.forEach(exampleResponses, add);
           pushResults();
         }
@@ -167,7 +149,6 @@ export default {
         const incorrectResponses = responses.filter(r => !r.body.data.correct);
 
         if (incorrectResponses.length) {
-          console.log("finding examples");
           const examplePromises = incorrectResponses.map(response =>
             self.$http.get(`${self.baseUrl}${response.body.data.entity}_examples?letter=${self.currentLetter}`),
           );
