@@ -10,9 +10,9 @@
         <table class="ui celled table">
           <thead>
           <tr>
-            <th>Stadt</th>
+            <th>Stadt (🇩🇪 )</th>
             <th>Land</th>
-            <th>Fluss</th>
+            <th>Fluss (🇩🇪 )</th>
             <th>Punkte</th>
           </tr></thead>
           <tbody>
