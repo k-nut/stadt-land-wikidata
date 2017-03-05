@@ -1,4 +1,4 @@
-<template>
+<template xmlns:v-on="http://www.w3.org/1999/xhtml">
   <div class="hello">
     <div class="ui padded grid">
       <div class="sixteen wide column">
@@ -6,7 +6,7 @@
       </div>
 
       <div class="sixteen wide column">
-        <form v-on:submit="check">
+        <form v-on:submit="check" action="">
         <table class="ui celled table">
           <thead>
           <tr>
@@ -16,54 +16,48 @@
             <th>Punkte</th>
           </tr></thead>
           <tbody>
-          <tr v-for="entry in entries">
-            <td>
-              {{entry.city.name}}
-              <a v-if="entry.city.correct" v-bind:href="entry.city.link" target="_blank">
-                <i class="green checkmark icon"></i>
-              </a>
-              <i v-else class="red close icon"></i>
-            </td>
-            <td>
-              {{entry.country.name}}
-              <a v-if="entry.country.correct" v-bind:href="entry.country.link" target="_blank">
-                <i class="green checkmark icon"></i>
-              </a>
-              <i v-else class="red close icon"></i>
-            </td>
-            <td>
-              {{entry.river.name}}
-              <a v-if="entry.river.correct" v-bind:href="entry.river.link" target="_blank">
-                <i class="green checkmark icon"></i>
-              </a>
-              <i v-else class="red close icon"></i>
-            </td>
-            <td>{{entry.points}}</td>
-          </tr>
+            <tr v-for="(entry, index) in entries">
+              <td v-for="entity in ['city', 'country', 'river']">
+                {{entry[entity].name}}
+                <a v-if="entry[entity].correct" v-bind:href="entry[entity].name" target="_blank">
+                  <i class="green checkmark icon"></i>
+                </a>
+                <div v-else>
+                  <i class="red close icon"></i>
+                  <a v-on:click="showExamples(entity, index)">Beispiel anzeigen</a>
+                  <ul v-show="visible.entity === entity && visible.index === index">
+                    <li v-for="example in entry[entity].examples">
+                      <a v-bind:href="example.item.value">{{example.itemLabel.value}}</a>
+                    </li>
+                  </ul>
+                </div>
+              </td>
+              <td>{{entry.points}}</td>
+            </tr>
 
-          <tr>
-            <td>
-              <div class="ui input">
-                <input type="text" v-model="newEntry.city" placeholder="Stadt" v-bind:pattern="pattern"/>
-              </div>
-            </td>
-            <td>
-              <div class="ui input">
-                <input type="text" v-model="newEntry.country" placeholder="Land" v-bind:pattern="pattern"/>
-              </div>
-            </td>
-            <td>
-              <div class="ui input">
-                <input type="text" v-model="newEntry.river" placeholder="Fluss" v-bind:pattern="pattern"/>
-              </div>
-            </td>
-            <td>
-              <button type="submit" class="ui green labeled icon button">
-                <i class="checkmark icon"></i>
-                Check
-              </button>
-            </td>
-          </tr>
+            <tr>
+              <td>
+                <div class="ui input">
+                  <input type="text" v-model="newEntry.city" placeholder="Stadt" v-bind:pattern="pattern"/>
+                </div>
+              </td>
+              <td>
+                <div class="ui input">
+                  <input type="text" v-model="newEntry.country" placeholder="Land" v-bind:pattern="pattern"/>
+                </div>
+              </td>
+              <td>
+                <div class="ui input">
+                  <input type="text" v-model="newEntry.river" placeholder="Fluss" v-bind:pattern="pattern"/>
+                </div>
+              </td>
+              <td>
+                <button type="submit" class="ui green labeled icon button">
+                  <i class="checkmark icon"></i>
+                  Check
+                </button>
+              </td>
+            </tr>
           </tbody>
           <tfoot>
           <tr>
@@ -108,14 +102,16 @@ export default {
       currentLetter,
       pattern: `^${currentLetter}.*`,
       loading: false,
+      visible: { entity: null, index: null },
     };
   },
   computed: {
-    totalPoints: () => _.sumBy(this.entries, "points"),
+    totalPoints() { return _.sumBy(this.entries, "points"); },
   },
   methods: {
     check: function check() {
       const self = this;
+      this.baseUrl = "https://stadt-land-wikidata.herokuapp.com/";
 
       function selectNextLetter() {
         self.currentLetter = _.sample("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
@@ -133,27 +129,67 @@ export default {
         const countryResponse = responses[1].body.data;
         const riverResponse = responses[2].body.data;
 
-        cityResponse.name = self.newEntry.city;
-        riverResponse.name = self.newEntry.river;
-        countryResponse.name = self.newEntry.country;
-        self.entries.push({
-          city: cityResponse,
-          country: countryResponse,
-          river: riverResponse,
-          points: _.sumBy(responses, response => (response.body.data.correct ? 1 : 0)) * 10,
-        });
-        selectNextLetter();
+
+        function pushResults() {
+          self.entries.push({
+            city: cityResponse,
+            country: countryResponse,
+            river: riverResponse,
+            points: _.sumBy(responses, response => (response.body.data.correct ? 1 : 0)) * 10,
+          });
+          selectNextLetter();
+        }
+
+        function add(response) {
+          console.log("response", response);
+          switch (response.body.data.entity) {
+            case ("city"):
+              cityResponse.examples = response.body.data.examples;
+              break;
+            case ("river"):
+              riverResponse.examples = response.body.data.examples;
+              break;
+            case ("country"):
+              countryResponse.examples = response.body.data.examples;
+              break;
+            default:
+              // we should never get here
+              break;
+          }
+        }
+
+        function pushit(exampleResponses) {
+          console.log(exampleResponses);
+          _.forEach(exampleResponses, add);
+          pushResults();
+        }
+
+        const incorrectResponses = responses.filter(r => !r.body.data.correct);
+
+        if (incorrectResponses.length) {
+          console.log("finding examples");
+          const examplePromises = incorrectResponses.map(response =>
+            self.$http.get(`${self.baseUrl}${response.body.data.entity}_examples?letter=${self.currentLetter}`),
+          );
+          Promise.all(examplePromises).then(pushit);
+        } else {
+          pushResults();
+        }
       }
 
       const promises = [
-        this.$http.get(`https://stadt-land-wikidata.herokuapp.com/city?name=${this.newEntry.city}`),
-        this.$http.get(`https://stadt-land-wikidata.herokuapp.com/country?name=${this.newEntry.country}`),
-        this.$http.get(`https://stadt-land-wikidata.herokuapp.com/river?name=${this.newEntry.river}`),
+        this.$http.get(`${self.baseUrl}city?name=${this.newEntry.city}`),
+        this.$http.get(`${self.baseUrl}country?name=${this.newEntry.country}`),
+        this.$http.get(`${self.baseUrl}river?name=${this.newEntry.river}`),
       ];
 
 
       this.loading = true;
       Promise.all(promises).then(successHandler);
+    },
+    showExamples: function showExamples(entity, index) {
+      const settings = { entity, index };
+      this.visible = _.isEqual(this.visible, settings) ? {} : settings;
     },
   },
 };
