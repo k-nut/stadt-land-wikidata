@@ -1,5 +1,5 @@
 <template xmlns:v-on="http://www.w3.org/1999/xhtml">
-  <div class="hello">
+  <div class="game">
     <div class="ui padded grid">
       <div class="sixteen wide column">
         <h2> Aktueller Buchstabe: <b>{{currentLetter}}</b></h2>
@@ -82,7 +82,7 @@
 import _ from "lodash";
 
 export default {
-  name: "hello",
+  name: "game",
   data() {
     const currentLetter = _.sample("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
     return {
