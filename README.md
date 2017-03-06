@@ -1,6 +1,8 @@
 # stadt-land-wikidata
 
-> A Vue.js project
+This is the frontend code for https://stadt-land-wikidata.netlify.com.
+
+The backend can be found here: https://github.com/k-nut/stadt-land-wikidata-backend
 
 ## Build Setup
 
