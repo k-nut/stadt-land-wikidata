@@ -120,7 +120,6 @@ export default {
     check: function check() {
       const self = this;
       this.baseUrl = "https://stadt-land-wikidata.herokuapp.com/";
-      this.baseUrl = "http://localhost:5000/";
 
       function selectNextLetter() {
         self.currentLetter = _.sample("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
