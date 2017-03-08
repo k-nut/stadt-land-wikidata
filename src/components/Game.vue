@@ -19,7 +19,7 @@
             <tr v-for="(entry, index) in entries">
               <td v-for="entity in ['city', 'country', 'river']">
                 {{entry[entity].name}}
-                <a v-if="entry[entity].correct" v-bind:href="entry[entity].name" target="_blank">
+                <a v-if="entry[entity].correct" v-bind:href="entry[entity].link" target="_blank">
                   <i class="green checkmark icon"></i>
                 </a>
                 <div v-else>
@@ -27,7 +27,7 @@
                   <a v-on:click="showExamples(entity, index)">Beispiel anzeigen</a>
                   <ul v-show="visible.entity === entity && visible.index === index">
                     <li v-for="example in entry[entity].examples">
-                      <a v-bind:href="example.item.value">{{example.itemLabel.value}}</a>
+                      <a v-bind:href="example.item.value" target="_blank">{{example.itemLabel.value}}</a>
                     </li>
                   </ul>
                 </div>
