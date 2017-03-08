@@ -13,11 +13,12 @@
             <th>Stadt</th>
             <th>Land</th>
             <th>Fluss</th>
+            <th>Beruf</th>
             <th>Punkte</th>
           </tr></thead>
           <tbody>
             <tr v-for="(entry, index) in entries">
-              <td v-for="entity in ['city', 'country', 'river']">
+              <td v-for="entity in ['city', 'country', 'river', 'profession']">
                 {{entry[entity].name}}
                 <a v-if="entry[entity].correct" v-bind:href="entry[entity].link" target="_blank">
                   <i class="green checkmark icon"></i>
@@ -52,6 +53,11 @@
                 </div>
               </td>
               <td>
+                <div class="ui input">
+                  <input type="text" v-model="newEntry.profession" placeholder="Beruf" v-bind:pattern="pattern"/>
+                </div>
+              </td>
+              <td>
                 <button type="submit" class="ui green labeled icon button">
                   <i class="checkmark icon"></i>
                   Check
@@ -61,7 +67,7 @@
           </tbody>
           <tfoot>
           <tr>
-            <th colspan="3"> </th>
+            <th colspan="4"> </th>
             <th>{{totalPoints}}</th>
           </tr>
           </tfoot>
@@ -91,13 +97,15 @@ export default {
           city: { name: "Berlin", correct: true, link: "https://www.wikidata.org/wiki/Q64" },
           country: { name: "Belgien", correct: true, link: "https://www.wikidata.org/wiki/Q31" },
           river: { name: "Bröl", correct: true, link: "https://www.wikidata.org/wiki/Q153109" },
-          points: 30,
+          profession: { name: "Bademeister", correct: true, link: "https://www.wikidata.org/wiki/Q2257662" },
+          points: 40,
         },
       ],
       newEntry: {
         city: "",
         country: "",
         river: "",
+        profession: "",
       },
       currentLetter,
       pattern: `^${currentLetter}.*`,
@@ -112,6 +120,7 @@ export default {
     check: function check() {
       const self = this;
       this.baseUrl = "https://stadt-land-wikidata.herokuapp.com/";
+      this.baseUrl = "http://localhost:5000/";
 
       function selectNextLetter() {
         self.currentLetter = _.sample("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
@@ -120,6 +129,7 @@ export default {
           city: "",
           country: "",
           river: "",
+          profession: "",
         };
         self.loading = false;
       }
@@ -132,6 +142,7 @@ export default {
             city: responsesByEntity.city,
             country: responsesByEntity.country,
             river: responsesByEntity.river,
+            profession: responsesByEntity.profession,
             points: _.sumBy(responses, response => (response.body.data.correct ? 1 : 0)) * 10,
           });
           selectNextLetter();
@@ -162,11 +173,12 @@ export default {
         this.$http.get(`${self.baseUrl}city?name=${this.newEntry.city}`),
         this.$http.get(`${self.baseUrl}country?name=${this.newEntry.country}`),
         this.$http.get(`${self.baseUrl}river?name=${this.newEntry.river}`),
+        this.$http.get(`${self.baseUrl}profession?name=${this.newEntry.profession}`),
       ];
 
 
       this.loading = true;
-      Promise.all(promises).then(successHandler);
+      Promise.all(promises).then(successHandler, console.log);
     },
     showExamples: function showExamples(entity, index) {
       const settings = { entity, index };
