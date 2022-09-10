@@ -119,7 +119,7 @@ export default {
   methods: {
     check: function check() {
       const self = this;
-      this.baseUrl = "https://stadt-land-wikidata.herokuapp.com/";
+      this.baseUrl = "https://stadt-land-wikidata.fly.dev/";
 
       function selectNextLetter() {
         self.currentLetter = _.sample("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
