@@ -177,7 +177,7 @@ export default {
 
 
       this.loading = true;
-      Promise.all(promises).then(successHandler, console.log);
+      Promise.all(promises).then(successHandler);
     },
     showExamples: function showExamples(entity, index) {
       const settings = { entity, index };
